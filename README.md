@@ -86,7 +86,4 @@ You can swap in any marketplace keyword dataset by following the instructions ab
 
 For production, consider using a persistent vector DB (like Chroma or Weaviate) instead of FAISS files.
 
-css
-Copy code
 
-Would you like me to also draft a **short “Example Run” section** (sample input + sample top 3 keywords) so people can immediately see what to expect when they first launch it?
