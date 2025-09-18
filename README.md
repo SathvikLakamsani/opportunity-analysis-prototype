@@ -1,137 +1,92 @@
 
 # Opportunity Analysis Prototype (Optiwise)
 
-A minimal Streamlit + Python prototype that:
-- accepts a brand/product description,
-- fetches external context via SerpAPI,
-- summarizes with OpenAI,
-- embeds with OpenAI embeddings,
-- matches to the closest Walmart search keywords using a FAISS index,
-- returns the top 3 matches.
+A minimal Streamlit + Python prototype for exploring how product or brand descriptions can be matched against a keyword database.
 
-> You can start with the included small sample keyword file and swap in the real Walmart keyword dump later.
+The app lets you:
+- Enter a brand or product description
+- (Optionally) fetch context snippets from a SERP provider
+- Summarize the description with OpenAI
+- Generate embeddings
+- Retrieve the closest matching keywords from your dataset using FAISS
+- Display the top results
 
 ---
 
-## 1) Setup
+## ⚠️ Data Notice
+This project ships with a **sample keyword list** in `data/sample_keywords.csv` for demonstration purposes.
 
-```bash
-# Clone your new repo or initialize locally
-git init opportunity-analysis-prototype
-cd opportunity-analysis-prototype
+To use your own marketplace keyword data:
+1. Prepare a CSV file with **one column named `keyword`**.
+2. Save it in the `data/` folder, e.g. `data/my_keywords.csv`.
+3. Rebuild the FAISS index:
+   ```bash
+   python scripts/build_index.py --csv data/my_keywords.csv --out_dir .
+Restart the Streamlit app. The new keywords will be used for retrieval.
 
-# (Optional but recommended) create a virtual environment
+Setup
+Prerequisites
+Python 3.9–3.12
+
+An OpenAI API key
+
+(Optional) a SERP provider key:
+
+Serpapi.com
+
+or WebScrapingAPI’s Serp endpoint
+
+Installation
+bash
+Copy code
 python3 -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# Install deps
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
+cp .env.example .env         # then edit .env with your keys
+In .env, set:
 
-Create a `.env` by copying the example and filling in your keys:
+ini
+Copy code
+OPENAI_API_KEY=your_openai_key_here
 
-```bash
-cp .env.example .env
-# edit .env to add OPENAI_API_KEY and SERPAPI_API_KEY
-```
+# Choose a SERP provider (or leave blank to skip fetching snippets):
+SERP_PROVIDER=webscrapingapi
+WSA_SERP_API_KEY=your_webscrapingapi_key_here
+SERPAPI_API_KEY=your_serpapi_key_here
+Usage
+1) Build the index (with sample or your own data)
+bash
+Copy code
+python scripts/build_index.py --csv data/sample_keywords.csv --out_dir .
+2) (Optional) Smoke test
+bash
+Copy code
+PYTHONPATH=. python scripts/smoke_test.py
+3) Run the app
+bash
+Copy code
+PYTHONPATH=. streamlit run app/streamlit_app.py
+Open the printed URL (usually http://localhost:8501).
+Enter a product/brand description to see the top-matched keywords.
 
----
+API Keys & Secrets
+This project does not include working API keys.
+You must provide your own keys in a local .env file.
 
-## 2) Prepare Keyword Index
+.env is listed in .gitignore so your keys are never committed to git.
 
-A small sample file is included at `data/walmart_keywords_sample.csv`.
-When you obtain the full Walmart keyword dataset, replace this file (or add a new file) with your full list.
-The *only* required column is `keyword`.
+Everyone using this repo must set up their own API keys.
 
-Then build the FAISS index:
+If deploying (e.g. Streamlit Cloud, Vercel), add your keys through the platform’s secrets manager.
 
-```bash
-python scripts/build_index.py --csv data/walmart_keywords_sample.csv --out_dir .
-```
+Notes
+If SERP API calls fail (401/429/etc.), the app falls back to using your input text directly.
 
-This will create:
-- `embeddings.index` (FAISS index file)
-- `keywords.npy` (NumPy array of original keyword strings)
+You can swap in any marketplace keyword dataset by following the instructions above.
 
----
+For production, consider using a persistent vector DB (like Chroma or Weaviate) instead of FAISS files.
 
-## 3) Run the App
+css
+Copy code
 
-```bash
-streamlit run app/streamlit_app.py
-```
-
-Open the URL Streamlit prints (usually http://localhost:8501).
-
----
-
-## 3.5) Smoke Test (optional)
-
-After building the index, you can run a quick smoke test (no SerpAPI, no Chat — just embeddings + retrieval):
-
-```bash
-python scripts/smoke_test.py
-```
-
-You should see the top matches for a few example summaries printed to the console.
-
----
-
-## 4) Repo Structure
-
-```
-.
-├── app/
-│   └── streamlit_app.py          # Streamlit UI and end-to-end flow
-├── data/
-│   └── walmart_keywords_sample.csv
-├── scripts/
-│   ├── build_index.py            # Build FAISS index from CSV of keywords
-│   └── smoke_test.py             # Quick embeddings + FAISS sanity check
-├── src/
-│   ├── nlp/
-│   │   ├── embed.py              # OpenAI embedding helpers
-│   │   ├── index.py              # FAISS index load/query helpers
-│   │   └── matcher.py            # Brand→summary→embedding→top-k keywords
-│   ├── retrievers/
-│   │   └── serp_client.py        # SerpAPI fetcher for brand context
-│   └── utils/
-│       └── config.py             # Env loading, shared config
-├── .env.example
-├── .gitignore
-├── README.md
-└── requirements.txt
-```
-
----
-
-## 5) First GitHub Push
-
-```bash
-git add .
-git commit -m "Initial prototype scaffold"
-git branch -M main
-git remote add origin https://github.com/<your-username>/opportunity-analysis-prototype.git
-git push -u origin main
-```
-
----
-
-## 6) Swapping in Real Data
-
-1. Put your full Walmart keyword list into `data/your_full_keywords.csv` with a single column named `keyword`.
-2. Rebuild the index:
-
-```bash
-python scripts/build_index.py --csv data/your_full_keywords.csv --out_dir .
-```
-
-3. Restart Streamlit.
-
----
-
-## 7) Notes
-
-- Keep the FAISS index and keyword array committed if they’re small; otherwise add to `.gitignore` and regenerate in CI.
-- For larger datasets, consider chunking and using persistent vector DBs (Chroma, Weaviate). For Phase 1, FAISS files are simplest.
-- If SerpAPI rate limits you, start with just your raw brand text and skip retrieval, then add retrieval later.
+Would you like me to also draft a **short “Example Run” section** (sample input + sample top 3 keywords) so people can immediately see what to expect when they first launch it?
