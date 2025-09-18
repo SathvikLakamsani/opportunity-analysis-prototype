@@ -1,0 +1,33 @@
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.env
+.venv/
+venv/
+.env.local
+
+# OS files
+.DS_Store
+
+# Python
+.ipynb_checkpoints/
+
+# Streamlit
+.streamlit/
+
+# Build artifacts
+*.faiss
+*.pkl
+*.npy
+
+# Data (keep sample; ignore big dumps)
+data/*.csv
+!data/walmart_keywords_sample.csv
+
+# Logs
+logs/
+*.log
