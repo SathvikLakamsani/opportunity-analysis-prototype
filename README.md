@@ -1,5 +1,5 @@
 
-# Opportunity Analysis Prototype (Optiwise)
+# Opportunity Analysis Prototype 
 
 A minimal Streamlit + Python prototype for exploring how product or brand descriptions can be matched against a keyword database.
 
